@@ -1469,7 +1469,8 @@ void VPD_CommandSetupR36();
 //
 // Parameters:
 //   addr - Address of the source buffer
-void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(b, d, e, iyl, iyh);
+void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh);
+void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 
 // Function: VPD_CommandReadLoop
 // Read to VRAM command loop. [MSX2/2+/TR]
@@ -1513,6 +1514,10 @@ void VPD_CommandReadLoop(u8* addr) __FASTCALL;
 #define VDP_DrawPoint				VDP_CommandPSET		// Draw a dot in VRAM 
 #define VDP_ReadPoint				VDP_CommandPOINT	// Read the color of the specified dot located in VRAM 
 #define VDP_AbortCommand			VDP_CommandSTOP		// Abort current command
+
+
+#define VDP_CopyRAMtoVRAM2			VDP_CommandHMMC2	// High speed move CPU to VRAM
+#define VDP_LogicalCopyRAMtoVRAM2	VDP_CommandLMMC2	// Logical move CPU to VRAM
 
 #endif // ((MSX_VERSION >= MSX_2) && (VDP_USE_COMMAND))
 

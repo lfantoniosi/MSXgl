@@ -462,6 +462,13 @@
 #define VDP_ARG_MAJ_H		0 // horizontal
 #define VDP_ARG_MAJ_V		1 // vertical
 
+///
+
+#define VDP_HMMC2_NM  0		// normal copy
+#define VDP_HMMC2_HF  1		// horizontal flip
+
+
+
 //-----------------------------------------------------------------------------
 //
 //   V D P   S T A T U S   R E G I S T E R S
