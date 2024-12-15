@@ -1369,9 +1369,9 @@ void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh)
 		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
 		in		a, (P_VDP_STAT)
 		rra							// check CE (bit#0)
-		jp		nc, write_finished	// CE==0 ? command finished
+		jr		nc, write_finished	// CE==0 ? command finished
 		outi						// write a byte from HL to port VDP_IREG
-		jp		write_loop
+		jr		write_loop
 
 	write_finished:
 		// Reset current status register to S#0
@@ -1417,13 +1417,13 @@ void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
 		in		a, (P_VDP_STAT)
 		rra							// check CE (bit#0)
-		jp		nc, write_finishedHF	// CE==0 ? command finished
+		jr		nc, write_finishedHF	// CE==0 ? command finished
 		outd						// write a byte from HL to port VDP_IREG
 		jr 		nz, write_loopHF
 		ld		b, e
 		add 	hl,de
 		add		hl,de
-		jp		write_loopHF
+		jr		write_loopHF
 
 	write_finishedHF:
 		// Reset current status register to S#0

@@ -46,6 +46,23 @@ crt0_init:
 	ld		hl, #s__HEAP
 	ld		(#_g_HeapStartAddress), hl
 
+	ld 		a,(MSXVER)
+	ld		(#_g_MSXVersion),a
+
+	cp		#0x03
+	jr		nz,not_a_turbor
+	ld 		a,#0x81 	; TURBO ROM + LED
+	call	0x0180		; CGHCPU
+
+	ld 		a,(VDPREA)
+	ld 		(#_g_VDPRead),a
+
+	ld 		a,(VDPWRT)
+	ld 		(#_g_VDPWrite),a
+
+	di
+not_a_turbor:
+
 	; Set Page 2 slot equal to Page 1 slot
 	INIT_P1_TO_P2
 	
@@ -79,6 +96,14 @@ _g_LastAddr::
 ; RAM
 ;==============================================================================
 	.area	_DATA
+
+_g_MSXVersion::
+	.ds		1
+
+_g_VDPRead::
+	.ds		1
+_g_VDPWrite::
+	.ds		1
 
 _g_HeapStartAddress::
 	.ds		2

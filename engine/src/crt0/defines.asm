@@ -36,6 +36,8 @@ ENASLT			= #0x0024
 ROMVER			= #0x002B
 MSXVER			= #0x002D
 RSLREG			= #0x0138
+VDPREA          = #0x0006
+VDPWRT          = #0x0007
 
 ;------------------------------------------------------------------------------
 ; RAM work area variables
