@@ -1388,6 +1388,54 @@ void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh)
 }
 
 //-----------------------------------------------------------------------------
+// Write to VRAM command loop
+// @param		addr		The address in RAM from where read data to be copied in VRAM
+// 						(First byte of data was sent in the command execution)
+void VPD_CommandWriteLoopNM(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh)
+{
+	addr; // HL
+	nx; // DE
+	
+	__asm
+		// Set indirect register write to R#44
+		ld  	a, #VDP_REG(44)
+		VDP_DI //~~~~~~~~~~~~~~~~~~~~~~~~~~
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(17)
+		out 	(P_VDP_REG), a
+		// Set current status register to S#2
+		ld  	a, #2
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(15)
+		out 	(P_VDP_REG), a
+		// Setup outi loop (value of register B don't matter)
+		inc 	hl
+		ld		c, #P_VDP_IREG
+		ld		b, e
+		dec		b // first byte already sent		
+	write_loopNM:
+		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
+		in		a, (P_VDP_STAT)
+		rra							// check CE (bit#0)
+		jr		nc, write_finishedNM	// CE==0 ? command finished
+		otir						// write a byte from HL to port VDP_IREG
+		ld		b, e
+		jr		write_loopNM
+	write_finishedNM:
+		// Reset current status register to S#0
+	#if (VDP_USE_RESTORE_S0)
+		xor 	a	
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(15)
+		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
+		out 	(P_VDP_REG), a
+	#else
+		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
+	#endif
+	__endasm;
+}
+
+//-----------------------------------------------------------------------------
 // Write to VRAM command loop with Horizontal Flip (HF)
 // @param		addr		The address in RAM from where read data to be copied in VRAM
 // 						(First byte of data was sent in the command execution)
@@ -1414,17 +1462,14 @@ void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 		ld		b, e
 		dec		b // first byte already sent
 	write_loopHF:
-		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
 		in		a, (P_VDP_STAT)
-		rra							// check CE (bit#0)
+		rra								// check CE (bit#0)
 		jr		nc, write_finishedHF	// CE==0 ? command finished
-		outd						// write a byte from HL to port VDP_IREG
-		jr 		nz, write_loopHF
+		otdr
 		ld		b, e
 		add 	hl,de
 		add		hl,de
-		jr		write_loopHF
-
+		jr		write_loopHF		
 	write_finishedHF:
 		// Reset current status register to S#0
 	#if (VDP_USE_RESTORE_S0)

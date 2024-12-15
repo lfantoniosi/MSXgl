@@ -1471,6 +1471,7 @@ void VPD_CommandSetupR36();
 //   addr - Address of the source buffer
 void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh);
 void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
+void VPD_CommandWriteLoopNM(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 
 // Function: VPD_CommandReadLoop
 // Read to VRAM command loop. [MSX2/2+/TR]

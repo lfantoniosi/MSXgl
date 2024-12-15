@@ -51,7 +51,7 @@ inline void VDP_CommandHMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 	{
 		g_VDP_Command.CLR = *addr;
 		VPD_CommandSetupR36();
-		VPD_CommandWriteLoop(addr);
+		VPD_CommandWriteLoopNM(addr, nx);
 	}
 }
 
@@ -261,7 +261,7 @@ inline void VDP_CommandLMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 	{
 		g_VDP_Command.CLR = *addr;
 		VPD_CommandSetupR36();
-		VPD_CommandWriteLoop(addr);
+		VPD_CommandWriteLoopNM(addr, nx);
 	}
 
 }
