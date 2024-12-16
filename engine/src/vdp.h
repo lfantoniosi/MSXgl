@@ -1472,6 +1472,8 @@ void VPD_CommandSetupR36();
 void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh);
 void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 void VPD_CommandWriteLoopNM(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
+void VPD_CommandWriteLoopHFSlow(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
+void VPD_CommandWriteLoopNMSlow(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 
 // Function: VPD_CommandReadLoop
 // Read to VRAM command loop. [MSX2/2+/TR]
@@ -1519,6 +1521,10 @@ void VPD_CommandReadLoop(u8* addr) __FASTCALL;
 
 #define VDP_CopyRAMtoVRAM2			VDP_CommandHMMC2	// High speed move CPU to VRAM
 #define VDP_LogicalCopyRAMtoVRAM2	VDP_CommandLMMC2	// Logical move CPU to VRAM
+
+#define VDP_CopyRAMtoVRAM2Slow		VDP_CommandHMMC2Slow	// High speed move CPU to VRAM
+#define VDP_LogicalCopyRAMtoVRAM2Slow	VDP_CommandLMMC2Slow	// Logical move CPU to VRAM
+
 
 #endif // ((MSX_VERSION >= MSX_2) && (VDP_USE_COMMAND))
 
