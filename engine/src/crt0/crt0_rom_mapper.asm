@@ -66,11 +66,11 @@ not_a_turbor:
 	; Set Page 2 slot equal to Page 1 slot
 	INIT_P1_TO_P2
 	
-	; Initialize ROM mapper segment
-	INIT_MAPPER
-
 	; Install ISR in RAM (if ROM_RAMISR is set)
 	INSTALL_RAM_ISR
+
+	; Initialize ROM mapper segment
+	INIT_MAPPER
 
 	; Initialize globals
 	INIT_GLOBALS
