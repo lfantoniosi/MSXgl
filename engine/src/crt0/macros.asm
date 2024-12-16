@@ -600,7 +600,7 @@
 			ldir
 		.endif
 
-		ei
+		;ei
 
 	.endif
 .endm

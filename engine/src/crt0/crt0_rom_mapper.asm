@@ -71,7 +71,7 @@ not_a_turbor:
 
 	; Initialize ROM mapper segment
 	INIT_MAPPER
-
+ctr0_init_globals::
 	; Initialize globals
 	INIT_GLOBALS
 
