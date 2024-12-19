@@ -1418,62 +1418,17 @@ void VPD_CommandWriteLoopNM(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 		in		a, (P_VDP_STAT)
 		rra							// check CE (bit#0)
 		jr		nc, write_finishedNM	// CE==0 ? command finished
-		otir						// write a byte from HL to port VDP_IREG
+		//otir						// write a byte from HL to port VDP_IREG
+	otirNM:
+		ld 		a,(hl)
+		inc		hl
+		out		(c),a
+		djnz	otirNM
+
 		ld		b, e
 		jr		write_loopNM
 
 	write_finishedNM:
-		// Reset current status register to S#0
-	#if (VDP_USE_RESTORE_S0)
-		xor 	a	
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(15)
-		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-		out 	(P_VDP_REG), a
-	#else
-		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-	#endif
-	__endasm;
-}
-
-void VPD_CommandWriteLoopNMSlow(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh)
-{
-	addr; // HL
-	nx; // DE
-	
-	__asm
-		// Set indirect register write to R#44
-		ld  	a, #VDP_REG(44)
-		VDP_DI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(17)
-		out 	(P_VDP_REG), a
-		// Set current status register to S#2
-		ld  	a, #2
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(15)
-		out 	(P_VDP_REG), a
-		// Setup outi loop (value of register B don't matter)
-		inc 	hl
-		ld		c, #P_VDP_IREG
-		ld		b, e
-		dec		b // first byte already sent		
-	write_loopNMSlow:
-		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
-		in		a, (P_VDP_STAT)
-		rra							// check CE (bit#0)
-		jr		nc, write_finishedNMSlow	// CE==0 ? command finished
-		//otir						// write a byte from HL to port VDP_IREG
-	otir_NMSlow:
-		ld		a,(hl)
-		out		(c),a
-		inc		hl
-		djnz	otir_NMSlow
-		
-		ld		b, e
-		jr		write_loopNMSlow
-
-	write_finishedNMSlow:
 		// Reset current status register to S#0
 	#if (VDP_USE_RESTORE_S0)
 		xor 	a	
@@ -1510,7 +1465,7 @@ void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 		ld  	a, #VDP_REG(15)
 		out 	(P_VDP_REG), a
 		// Setup outi loop (value of register B don't matter)
-		inc 	hl
+		dec 	hl
 		ld		c, #P_VDP_IREG
 		ld		b, e
 		dec		b // first byte already sent
@@ -1518,7 +1473,16 @@ void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 		in		a, (P_VDP_STAT)
 		rra								// check CE (bit#0)
 		jr		nc, write_finishedHF	// CE==0 ? command finished
-		otdr
+		//otdr
+	otdrHF:
+		ld 		a,(hl)
+		dec		hl
+		rrca
+		rrca
+		rrca
+		rrca
+		out		(c),a
+		djnz	otdrHF
 		ld		b, e
 		add 	hl,de
 		add		hl,de
@@ -1537,55 +1501,6 @@ void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl,
 	__endasm;
 }
 
-void VPD_CommandWriteLoopHFSlow(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh)
-{
-	addr; // HL
-	nx; // DE
-	
-	__asm
-		// Set indirect register write to R#44
-		ld  	a, #VDP_REG(44)
-		VDP_DI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(17)
-		out 	(P_VDP_REG), a
-		// Set current status register to S#2
-		ld  	a, #2
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(15)
-		out 	(P_VDP_REG), a
-		// Setup outi loop (value of register B don't matter)
-		inc 	hl
-		ld		c, #P_VDP_IREG
-		ld		b, e
-		dec		b // first byte already sent
-	write_loopHFSlow:
-		in		a, (P_VDP_STAT)
-		rra								// check CE (bit#0)
-		jr		nc, write_finishedHFSlow	// CE==0 ? command finished
-		//otdr
-	otdr_HFSlow:
-		ld		a,(hl)
-		out		(c),a
-		dec		hl
-		djnz	otdr_HFSlow		
-		ld		b, e
-		add 	hl,de
-		add		hl,de
-		jr		write_loopHFSlow
-	write_finishedHFSlow:
-		// Reset current status register to S#0
-	#if (VDP_USE_RESTORE_S0)
-		xor 	a	
-		out 	(P_VDP_REG), a
-		ld  	a, #VDP_REG(15)
-		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-		out 	(P_VDP_REG), a
-	#else
-		VDP_EI //~~~~~~~~~~~~~~~~~~~~~~~~~~
-	#endif
-	__endasm;
-}
 
 #endif // ((VDP_USE_COMMAND) && (MSX_VERSION >= MSX_2))
 

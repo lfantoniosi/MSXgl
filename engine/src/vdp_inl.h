@@ -40,10 +40,12 @@ inline void VDP_CommandHMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 	g_VDP_Command.ARG = arg; 
 	g_VDP_Command.CMD = VDP_CMD_HMMC;
 
+	nx = nx >> 1;
 	if (flag == VDP_HMMC2_HF)
 	{
 		addr += nx - 1;
-		g_VDP_Command.CLR = *addr;
+		u8 data = *addr;
+		g_VDP_Command.CLR = ((data & 0xF0) >> 4) | ((data & 0x0F) << 4);
 		VPD_CommandSetupR36();
 		VPD_CommandWriteLoopHF(addr, nx);
 	}
@@ -52,30 +54,6 @@ inline void VDP_CommandHMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 		g_VDP_Command.CLR = *addr;
 		VPD_CommandSetupR36();
 		VPD_CommandWriteLoopNM(addr, nx);
-	}
-}
-
-inline void VDP_CommandHMMC2Slow_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 arg, u8 flag)
-{
-	g_VDP_Command.DX = dx;
-	g_VDP_Command.DY = dy;
-	g_VDP_Command.NX = nx;
-	g_VDP_Command.NY = ny;
-	g_VDP_Command.ARG = arg; 
-	g_VDP_Command.CMD = VDP_CMD_HMMC;
-
-	if (flag == VDP_HMMC2_HF)
-	{
-		addr += nx - 1;
-		g_VDP_Command.CLR = *addr;
-		VPD_CommandSetupR36();
-		VPD_CommandWriteLoopHFSlow(addr, nx);
-	}
-	else
-	{
-		g_VDP_Command.CLR = *addr;
-		VPD_CommandSetupR36();
-		VPD_CommandWriteLoopNMSlow(addr, nx);
 	}
 }
 
@@ -99,12 +77,6 @@ inline void VDP_CommandHMMC2(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 
 {
 	VDP_CommandHMMC2_Arg(addr, dx, dy, nx, ny, 0, flag);
 }
-
-inline void VDP_CommandHMMC2Slow(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 flag)
-{
-	VDP_CommandHMMC2Slow_Arg(addr, dx, dy, nx, ny, 0, flag);
-}
-
 //-----------------------------------------------------------------------------
 // Function: VDP_CommandYMMM
 // High speed move VRAM to VRAM, Y coordinate only. [MSX2/2+/TR]
@@ -293,32 +265,6 @@ inline void VDP_CommandLMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 	}
 }
 
-inline void VDP_CommandLMMC2Slow_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 op, u8 arg, u8 flag)
-{
-	g_VDP_Command.DX = dx;
-	g_VDP_Command.DY = dy;
-	g_VDP_Command.NX = nx;
-	g_VDP_Command.NY = ny;
-	g_VDP_Command.ARG = arg; 
-	g_VDP_Command.CMD = VDP_CMD_LMMC + op;
-
-	if (flag == VDP_HMMC2_HF)
-	{
-		addr += nx - 1;
-		g_VDP_Command.CLR = *addr;
-		addr-=2;
-		VPD_CommandSetupR36();
-		VPD_CommandWriteLoopHFSlow(addr, nx);
-	}
-	else
-	{
-		g_VDP_Command.CLR = *addr;
-		VPD_CommandSetupR36();
-		VPD_CommandWriteLoopNMSlow(addr, nx);
-	}
-}
-
-
 //-----------------------------------------------------------------------------
 // Function: VDP_CommandLMMC
 // Logical move CPU to VRAM. [MSX2/2+/TR]
@@ -339,12 +285,6 @@ inline void VDP_CommandLMMC2(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 
 {
 	VDP_CommandLMMC2_Arg(addr, dx, dy, nx, ny, op, 0, flag);
 }
-
-inline void VDP_CommandLMMC2Slow(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 op, u8 flag)
-{
-	VDP_CommandLMMC2Slow_Arg(addr, dx, dy, nx, ny, op, 0, flag);
-}
-
 
 //-----------------------------------------------------------------------------
 // Function: VDP_CommandLMCM
