@@ -51,7 +51,7 @@ crt0_init:
 
 	cp		#0x03
 	jr		nz,not_a_turbor
-	ld 		a,#0x82 	; TURBO ROM + LED
+	ld 		a,#0x81 	; TURBO ROM + LED
 	call	0x0180		; CGHCPU
 
 	ld 		a,(VDPREA)
