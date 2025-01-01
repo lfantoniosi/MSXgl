@@ -77,17 +77,17 @@ typedef struct
 
 // Macro: Clamp8
 // Clamp a 8-bits value into a interval 
-#define CLAMP8(a, b, c)		((i8)(a) < (i8)(b)) ? (b) : ((i8)(a) > (i8)(c)) ? (c) : (a)
+#define CLAMP8(a, b, c)		(((i8)(a) < (i8)(b)) ? (b) : ((i8)(a) > (i8)(c)) ? (c) : (a))
 // Macro: Clamp16
 // Clamp a 16-bits value into a interval 
-#define CLAMP16(a, b, c)	((i16)(a) < (i16)(b)) ? (b) : ((i16)(a) > (i16)(c)) ? (c) : (a)
+#define CLAMP16(a, b, c)	(((i16)(a) < (i16)(b)) ? (b) : ((i16)(a) > (i16)(c)) ? (c) : (a))
 
 // Macro: Max
 // Find highest value
-#define MAX(a, b)			((a) > (b)) ? (a) : (b)
+#define MAX(a, b)			(((a) > (b)) ? (a) : (b))
 // Macro: Min
 // Find lowest value
-#define MIN(a, b)			((a) > (b)) ? (b) : (a)
+#define MIN(a, b)			(((a) > (b)) ? (b) : (a))
 
 //-----------------------------------------------------------------------------
 // Group: Quick math

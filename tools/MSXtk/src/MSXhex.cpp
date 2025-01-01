@@ -236,6 +236,7 @@ bool WriteBytesAtAddress(u32 addr, const std::vector<u8>& data)
 	}
 
 	// Check banked data segment
+	static u16 lastSeg = 0xFFFF;
 	u16 segNum = (addr >> 16);
 	u16 segAddr = (addr & 0xFFFF);
 	if ((g_BankSize != 0) && (segNum > 0))
@@ -256,8 +257,10 @@ bool WriteBytesAtAddress(u32 addr, const std::vector<u8>& data)
 	{
 		if ((std::find(g_SegException.begin(), g_SegException.end(), segNum) == g_SegException.end()) && (g_SegmentInfo[segNum].Size > g_BankSize))
 			printf("Warning: Segment %i size (%i) exceed defined bank size (%i)\n", segNum, g_SegmentInfo[segNum].Size, g_BankSize);
+		else if (lastSeg != segNum && lastSeg != 0xFFFF)
+			printf("Log: Segment %i size=%i\n", lastSeg, g_SegmentInfo[lastSeg].Size);
 	}
-
+	lastSeg = segNum;
 	return WriteBytesAtOffset(addr - g_StartAddress, data);
 }
 
