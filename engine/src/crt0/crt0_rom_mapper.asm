@@ -49,10 +49,42 @@ crt0_init:
 	ld 		a,(MSXVER)
 	ld		(#_g_MSXVersion),a
 
-	cp		#0x03
-	jr		nz,not_a_turbor
-	ld 		a,#0x81 	; TURBO ROM + LED
-	call	0x0180		; CGHCPU
+	ld		hl,#0x0180
+	ld		a,(hl)
+	cp		#0xc3
+	jr		nz,check_wsx
+	ld		a,#0x81
+	call	0x0180
+	jr		end_turbo_switch	
+check_wsx:
+	ld		bc,#0x0840
+	out		(c),b
+	in		a,(c)
+	cpl
+	cp	    b
+	jr		nz,check_exp
+	in		a,(#0x41)
+	and	    #0xfe
+	out		(#0x41),a
+	jr		end_turbo_switch
+check_exp:
+	ld		de,#0xfaa7
+	ld		hl,(#0x1387)
+	rst		0x20
+	jr		nz,end_turbo_switch
+	ld		de,#0x1393
+	ld		hl,(#0x1389)
+	rst		0x20
+	jr		nz,end_turbo_switch
+	ld		de,#0xb6db
+	ld		hl,(#0x1393)
+	rst		0x20
+	jr		nz,end_turbo_switch
+	in		a,(#0xb6)
+	or		#0x80
+	out		(#0xb6),a
+
+end_turbo_switch:
 
 	ld 		a,(VDPREA)
 	ld 		(#_g_VDPRead),a
@@ -61,7 +93,6 @@ crt0_init:
 	ld 		(#_g_VDPWrite),a
 
 	di
-not_a_turbor:
 
 	; Set Page 2 slot equal to Page 1 slot
 	INIT_P1_TO_P2
