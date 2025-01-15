@@ -2095,56 +2095,56 @@ void VDP_SetSpritePatternTable(VADDR addr)
 
 //-----------------------------------------------------------------------------
 // Load pattern data into VRAM
-void VDP_LoadSpritePattern(const u8* addr, u8 index, u8 count)
-{
-	u16 low = g_SpritePatternLow;
-	low += (index * 8);
-	VDP_WriteVRAM(addr, low, g_SpritePatternHigh, count * 8);
-}
+// void VDP_LoadSpritePattern(const u8* addr, u8 index, u8 count)
+// {
+// 	u16 low = g_SpritePatternLow;
+// 	low += (index * 8);
+// 	VDP_WriteVRAM(addr, low, g_SpritePatternHigh, count * 8);
+// }
 
 //-----------------------------------------------------------------------------
 // Set sprite attribute for Sprite Mode 1 (MSX1)
-void VDP_SetSpriteSM1(u8 index, u8 x, u8 y, u8 shape, u8 color)
-{
-	g_VDP_Sprite.Y = y;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
-    g_VDP_Sprite.X = x;				// X coordinate of the sprite
-    g_VDP_Sprite.Pattern = shape;	// Pattern index
-    g_VDP_Sprite.Color = color;		// Color index (Sprite Mode 1 only) + Early clock
+// void VDP_SetSpriteSM1(u8 index, u8 x, u8 y, u8 shape, u8 color)
+// {
+// 	g_VDP_Sprite.Y = y;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
+//     g_VDP_Sprite.X = x;				// X coordinate of the sprite
+//     g_VDP_Sprite.Pattern = shape;	// Pattern index
+//     g_VDP_Sprite.Color = color;		// Color index (Sprite Mode 1 only) + Early clock
 
-	u16 low = g_SpriteAttributeLow;
-	low += (index * 4);
-	VDP_WriteVRAM((u8*)&g_VDP_Sprite, low, g_SpriteAttributeHigh, 4);
-}
+// 	u16 low = g_SpriteAttributeLow;
+// 	low += (index * 4);
+// 	VDP_WriteVRAM((u8*)&g_VDP_Sprite, low, g_SpriteAttributeHigh, 4);
+// }
 
 //-----------------------------------------------------------------------------
 // Set sprite attribute for Sprite Mode 2
-void VDP_SetSprite(u8 index, u8 x, u8 y, u8 shape)
-{
-	g_VDP_Sprite.Y = y;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
-    g_VDP_Sprite.X = x;				// X coordinate of the sprite
-    g_VDP_Sprite.Pattern = shape;	// Pattern index
+// void VDP_SetSprite(u8 index, u8 x, u8 y, u8 shape)
+// {
+// 	g_VDP_Sprite.Y = y;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
+//     g_VDP_Sprite.X = x;				// X coordinate of the sprite
+//     g_VDP_Sprite.Pattern = shape;	// Pattern index
 
-	u16 low = g_SpriteAttributeLow;
-	low += (index * 4);
-	VDP_WriteVRAM((u8*)&g_VDP_Sprite, low, g_SpriteAttributeHigh, 3);
-}
+// 	u16 low = g_SpriteAttributeLow;
+// 	low += (index * 4);
+// 	VDP_WriteVRAM((u8*)&g_VDP_Sprite, low, g_SpriteAttributeHigh, 3);
+// }
 
 #if (MSX_VERSION >= MSX_2)
 //-----------------------------------------------------------------------------
 // Set sprite attribute for Sprite Mode 2 and fill color table with color data
-void VDP_SetSpriteExMultiColor(u8 index, u8 x, u8 y, u8 shape, const u8* ram)
-{
-	u16 col = g_SpriteColorLow;
-	col += (index * 16);
-	VDP_WriteVRAM(ram, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
+// void VDP_SetSpriteExMultiColor(u8 index, u8 x, u8 y, u8 shape, const u8* ram)
+// {
+// 	u16 col = g_SpriteColorLow;
+// 	col += (index * 16);
+// 	VDP_WriteVRAM(ram, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
 
-	g_VDP_Sprite.X = x;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
-	g_VDP_Sprite.Y = y;				// X coordinate of the sprite
-	g_VDP_Sprite.Pattern = shape;	// Pattern index
-	u16 attr = g_SpriteAttributeLow;
-	attr += (index * 4);
-	VDP_WriteVRAM((u8*)&g_VDP_Sprite, attr, g_SpriteAttributeHigh, 3);
-}
+// 	g_VDP_Sprite.X = x;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
+// 	g_VDP_Sprite.Y = y;				// X coordinate of the sprite
+// 	g_VDP_Sprite.Pattern = shape;	// Pattern index
+// 	u16 attr = g_SpriteAttributeLow;
+// 	attr += (index * 4);
+// 	VDP_WriteVRAM((u8*)&g_VDP_Sprite, attr, g_SpriteAttributeHigh, 3);
+// }
 
 //-----------------------------------------------------------------------------
 // Set sprite attribute for Sprite Mode 2 and fill color table with unique color
@@ -2204,40 +2204,40 @@ void VDP_SetSpritePattern(u8 index, u8 shape)
 
 //-----------------------------------------------------------------------------
 // Update sprite pattern (Shader mode 1)
-void VDP_SetSpriteColorSM1(u8 index, u8 color)
-{
-	u16 low = g_SpriteAttributeLow + 3;
-	low += (index * 4);
-	VDP_Poke(color, low, g_SpriteAttributeHigh);
-}
+// void VDP_SetSpriteColorSM1(u8 index, u8 color)
+// {
+// 	u16 low = g_SpriteAttributeLow + 3;
+// 	low += (index * 4);
+// 	VDP_Poke(color, low, g_SpriteAttributeHigh);
+// }
 
 #if (MSX_VERSION >= MSX_2)
 //-----------------------------------------------------------------------------
 // Update sprite color (Uni-color)
-void VDP_SetSpriteUniColor(u8 index, u8 color)
-{
-	u16 col = g_SpriteColorLow;
-	col += (index * 16);
-	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
-}
+// void VDP_SetSpriteUniColor(u8 index, u8 color)
+// {
+// 	u16 col = g_SpriteColorLow;
+// 	col += (index * 16);
+// 	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
+// }
 
 //-----------------------------------------------------------------------------
 // Update sprite color (Multi-color)
-void VDP_SetSpriteMultiColor(u8 index, const u8* ram)
-{
-	u16 col = g_SpriteColorLow;
-	col += (index * 16);
-	VDP_WriteVRAM(ram, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);	
-}
+// void VDP_SetSpriteMultiColor(u8 index, const u8* ram)
+// {
+// 	u16 col = g_SpriteColorLow;
+// 	col += (index * 16);
+// 	VDP_WriteVRAM(ram, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);	
+// }
 
 //-----------------------------------------------------------------------------
 //
-void VDP_SetSpriteData(u8 index, const u8* data)
-{
-	u16 low = g_SpriteAttributeLow;
-	low += (index * 4);
-	VDP_WriteVRAM(data, low, g_SpriteAttributeHigh, 3);
-}
+// void VDP_SetSpriteData(u8 index, const u8* data)
+// {
+// 	u16 low = g_SpriteAttributeLow;
+// 	low += (index * 4);
+// 	VDP_WriteVRAM(data, low, g_SpriteAttributeHigh, 3);
+// }
 #endif // (MSX_VERSION >= MSX_2)
 
 //-----------------------------------------------------------------------------
