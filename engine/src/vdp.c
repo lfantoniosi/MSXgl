@@ -704,6 +704,12 @@ void VDP_Poke_16K(u8 val, u16 dest) __PRESERVES(c, h, l, iyl, iyh)
 	VDP_EI			\
 	outi
 
+#define OUTI_NDI(_n)	\
+	.rept _n-1		\
+		outi		\
+	.endm			\
+	outi
+
 //-----------------------------------------------------------------------------
 // Fast write to VDP register
 // @todo out-out timing is 25 cc, less than worse case on MSX1 for G1 et G2!
@@ -760,7 +766,7 @@ void VDP_Poke_16K(u8 val, u16 dest) __PRESERVES(c, h, l, iyl, iyh)
 		out		(P_VDP_ADDR), a						\
 		ld		hl, HASH(_##_addr)					\
 		ld		c, HASH(P_VDP_IREG)					\
-		OUTI(_count) ; 'ei' included				\
+		OUTI_NDI(_count) ; 'ei' included				\
 	__endasm	
 
 // Fast incremental write to VDP register. Address in HL register.
