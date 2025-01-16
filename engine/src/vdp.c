@@ -751,6 +751,18 @@ void VDP_Poke_16K(u8 val, u16 dest) __PRESERVES(c, h, l, iyl, iyh)
 		OUTI(_count) ; 'ei' included				\
 	__endasm
 
+// Fast incremental write to VDP register. Address in a label.
+#define ASM_REG_WRITE_INC_NDI(_addr, _reg, _count)		\
+	__asm											\
+		ld		a, HASH(_reg)						\
+		out		(P_VDP_ADDR), a						\
+		ld		a, HASH(VDP_REG(17))				\
+		out		(P_VDP_ADDR), a						\
+		ld		hl, HASH(_##_addr)					\
+		ld		c, HASH(P_VDP_IREG)					\
+		OUTI(_count) ; 'ei' included				\
+	__endasm	
+
 // Fast incremental write to VDP register. Address in HL register.
 #define ASM_REG_WRITE_INC_HL(_reg, _count)			\
 	__asm											\
@@ -1326,6 +1338,36 @@ void VDP_CommandWait() __PRESERVES(b, c, d, e, h, l, iyl, iyh)
 	__endasm;
 }
 
+void VDP_CommandWaitNDI() __PRESERVES(b, c, d, e, h, l, iyl, iyh)
+{
+	__asm
+	wait_vdp_readyNDI:
+	#if (VDP_USE_RESTORE_S0)
+		// Set current status register to S#2
+		ld		a, #2
+		out		(P_VDP_REG), a
+		ld		a, #VDP_REG(15)
+		out		(P_VDP_REG), a
+		in		a, (P_VDP_STAT)		// get S#2 value
+		rra							// check CE (bit#0)
+		// Reset current status register to S#0 before enabling interruptions
+		ld		a, #0				// don't use XOR here to keep C flag from RRA alive
+		out		(P_VDP_REG), a
+		ld		a, #VDP_REG(15)
+		out		(P_VDP_REG), a
+	#else
+		// Set current status register to S#2
+		ld		a, #2
+		out		(P_VDP_REG), a
+		ld		a, #VDP_REG(15)
+		out		(P_VDP_REG), a
+		in		a, (P_VDP_STAT)		// get S#2 value
+		rra							// check CE (bit#0)
+	#endif
+		jp		c, wait_vdp_readyNDI	// CE==1 ? command not finished
+	__endasm;
+}
+
 //-----------------------------------------------------------------------------
 // Send VDP command (form registres 32 to 46)
 void VPD_CommandSetupR32()
@@ -1341,6 +1383,13 @@ void VPD_CommandSetupR36()
 	VDP_CommandWait();
 	ASM_REG_WRITE_INC(g_VDP_Command + 4, 36, 11);
 }
+
+void VPD_CommandSetupNDIR36()
+{
+	VDP_CommandWaitNDI();
+	ASM_REG_WRITE_INC_NDI(g_VDP_Command + 4, 36, 11);
+}
+
 
 //-----------------------------------------------------------------------------
 // Write to VRAM command loop
@@ -1386,6 +1435,44 @@ void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh)
 	#endif
 	__endasm;
 }
+
+void VPD_CommandWriteLoopNDI(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh)
+{
+	addr; // HL
+	
+	__asm
+		// Set indirect register write to R#44
+		ld  	a, #VDP_REG(44)
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(17)
+		out 	(P_VDP_REG), a
+		// Set current status register to S#2
+		ld  	a, #2
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(15)
+		out 	(P_VDP_REG), a
+		// Setup outi loop (value of register B don't matter)
+		inc 	hl
+		ld		c, #P_VDP_IREG
+	write_loopNDI:
+		// Read S#2 to check CE flag (no need to check TR (bit#7) while write loop is longer than worse case VDP write duration (~29cc))
+		in		a, (P_VDP_STAT)
+		rra							// check CE (bit#0)
+		jr		nc, write_finishedNDI	// CE==0 ? command finished
+		outi						// write a byte from HL to port VDP_IREG
+		jr		write_loopNDI
+
+	write_finishedNDI:
+		// Reset current status register to S#0
+	#if (VDP_USE_RESTORE_S0)
+		xor 	a	
+		out 	(P_VDP_REG), a
+		ld  	a, #VDP_REG(15)
+		out 	(P_VDP_REG), a
+	#endif
+	__endasm;
+}
+
 
 //-----------------------------------------------------------------------------
 // Write to VRAM command loop
@@ -1543,6 +1630,14 @@ void VDP_SetHorizontalOffset(u16 offset)
 	VDP_RegWrite(27, reg);
 	reg = (offset + 7 ) >> 3;
 	VDP_RegWrite(26, reg);
+}
+
+void VDP_SetHorizontalOffsetNDI(u16 offset)
+{
+	u8 reg = (8 - (offset & 0xFF)) & 0x07;
+	VDP_RegWriteNDI(27, reg);
+	reg = (offset + 7 ) >> 3;
+	VDP_RegWriteNDI(26, reg);
 }
 
 #endif
@@ -1848,6 +1943,22 @@ void VDP_RegWrite(u8 reg, u8 value) __PRESERVES(b, c, d, e, iyl, iyh)
 	__endasm;
 }
 
+void VDP_RegWriteNDI(u8 reg, u8 value) __PRESERVES(b, c, d, e, iyl, iyh)
+{
+	reg;	// A
+	value;	// L
+
+	__asm
+		ld		h, a					// Register number
+		ld		a, l					// Value
+		out		(P_VDP_ADDR), a
+		ld		a, h
+		add		#0x80					// @todo Can be optimize by including 80h in the register number ; 33cc -> 25cc (warning for MSX1 VRAM write timing)
+		out		(P_VDP_ADDR), a
+	__endasm;
+}
+
+
 //-----------------------------------------------------------------------------
 // Set register value after backuping previous value [MSX1/2/2+/TR]
 //
@@ -1910,6 +2021,12 @@ void VDP_SetPage(u8 page)
 	u8 reg = page << 5;
 	reg |= 0b11111;
 	VDP_RegWriteBak(2, reg);
+}
+void VDP_SetPageNDI(u8 page)
+{
+	u8 reg = page << 5;
+	reg |= 0b11111;
+	VDP_RegWriteNDI(2, reg);
 }
 
 #endif // ((VDP_USE_MODE_G4 || VDP_USE_MODE_G5 || VDP_USE_MODE_G6 || VDP_USE_MODE_G7))
@@ -2148,19 +2265,19 @@ void VDP_SetSpritePatternTable(VADDR addr)
 
 //-----------------------------------------------------------------------------
 // Set sprite attribute for Sprite Mode 2 and fill color table with unique color
-void VDP_SetSpriteExUniColor(u8 index, u8 x, u8 y, u8 shape, u8 color)
-{
-	u16 col = g_SpriteColorLow;
-	col += (index * 16);
-	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
+// void VDP_SetSpriteExUniColor(u8 index, u8 x, u8 y, u8 shape, u8 color)
+// {
+// 	u16 col = g_SpriteColorLow;
+// 	col += (index * 16);
+// 	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
 
-	g_VDP_Sprite.X = x;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
-	g_VDP_Sprite.Y = y;				// X coordinate of the sprite
-	g_VDP_Sprite.Pattern = shape;	// Pattern index
-	u16 attr = g_SpriteAttributeLow;
-	attr += (index * 4);
-	VDP_WriteVRAM((u8*)&g_VDP_Sprite, attr, g_SpriteAttributeHigh, 3);
-}
+// 	g_VDP_Sprite.X = x;				// Y coordinate on screen (all lower priority sprite will be disable if equal to 216 or 0xD0)
+// 	g_VDP_Sprite.Y = y;				// X coordinate of the sprite
+// 	g_VDP_Sprite.Pattern = shape;	// Pattern index
+// 	u16 attr = g_SpriteAttributeLow;
+// 	attr += (index * 4);
+// 	VDP_WriteVRAM((u8*)&g_VDP_Sprite, attr, g_SpriteAttributeHigh, 3);
+// }
 #endif // (MSX_VERSION >= MSX_2)
 
 //-----------------------------------------------------------------------------
@@ -2214,12 +2331,12 @@ void VDP_SetSpritePattern(u8 index, u8 shape)
 #if (MSX_VERSION >= MSX_2)
 //-----------------------------------------------------------------------------
 // Update sprite color (Uni-color)
-// void VDP_SetSpriteUniColor(u8 index, u8 color)
-// {
-// 	u16 col = g_SpriteColorLow;
-// 	col += (index * 16);
-// 	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
-// }
+void VDP_SetSpriteUniColor(u8 index, u8 color)
+{
+	u16 col = g_SpriteColorLow;
+	col += (index * 16);
+	VDP_FillVRAM(color, col, g_SpriteColorHigh, VDP_SPRITE_COLORS);
+}
 
 //-----------------------------------------------------------------------------
 // Update sprite color (Multi-color)

@@ -239,9 +239,11 @@ bool WriteBytesAtAddress(u32 addr, const std::vector<u8>& data)
 	static u16 lastSeg = 0xFFFF;
 	u16 segNum = (addr >> 16);
 	u16 segAddr = (addr & 0xFFFF);
+	
+	bool wrapSegment = (std::find(g_SegException.begin(), g_SegException.end(), segNum) == g_SegException.end());
 	if ((g_BankSize != 0) && (segNum > 0))
 	{	
-		u16 segOffset = (u16)(addr & (g_BankSize - 1));
+		u16 segOffset = wrapSegment ? (u16)(addr & (g_BankSize - 1)) : (u16)addr;
 		addr = g_StartAddress + (segNum * g_BankSize) + segOffset;
 	}
 
@@ -261,6 +263,8 @@ bool WriteBytesAtAddress(u32 addr, const std::vector<u8>& data)
 			printf("Log: Segment %i size=%i\n", lastSeg, g_SegmentInfo[lastSeg].Size);
 	}
 	lastSeg = segNum;
+	//printf("Log: write bytes Segment %i Addr=%08Xh\n", segNum, addr - g_StartAddress);
+
 	return WriteBytesAtOffset(addr - g_StartAddress, data);
 }
 
@@ -580,6 +584,7 @@ int main(int argc, const char* argv[])
 	// Insert raw data
 	for (u32 i = 0; i < g_RawData.size(); i++)
 	{
+		printf("Log: Insert raw data Addr=%08Xh\n", g_RawData[i].Offset);
 		if (!WriteBytesAtOffset(g_RawData[i].Offset, g_RawData[i].Data))
 			return 1;
 	}

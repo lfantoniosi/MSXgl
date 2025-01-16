@@ -520,6 +520,8 @@ void VDP_SetModeFlag(u8 flag);
 //   reg   - Register number
 //   value - Value to set
 void VDP_RegWrite(u8 reg, u8 value) __PRESERVES(b, c, d, e, iyl, iyh);
+void VDP_RegWriteNDI(u8 reg, u8 value) __PRESERVES(b, c, d, e, iyl, iyh);
+
 
 // Function: VDP_RegWriteBak
 // Set register value after backuping previous value. [MSX1/2/2+/TR]
@@ -765,6 +767,8 @@ inline void VDP_SetHBlankLine(u8 line) { VDP_RegWrite(19, line); }
 //   offset - Number of lines of offset from the top of the screen
 inline void VDP_SetVerticalOffset(u8 offset) { VDP_RegWrite(23, offset); }
 
+inline void VDP_SetVerticalOffsetNDI(u8 offset) { VDP_RegWriteNDI(23, offset); }
+
 // Function: VDP_SetAdjustOffset
 // Adjustment of the display location on the screen (register 18). [MSX2/2+/TR]
 //
@@ -923,6 +927,7 @@ inline void VDP_EnableMask(u8 enable) { VDP_RegWriteBakMask(25, (u8)~R25_MAK, en
 // Parameters:
 //   offset - Screen horizontal offset (9-bits value in pixel)
 void VDP_SetHorizontalOffset(u16 offset);
+void VDP_SetHorizontalOffsetNDI(u16 offset);
 
 #define VDP_HSCROLL_SINGLE		0		// Scroll within a single screen page
 #define VDP_HSCROLL_DOUBLE		R25_SP2 // Scroll between two screen pages
@@ -1052,6 +1057,7 @@ inline VADDR VDP_GetSpriteColorTable() { return VADDR_GET(g_SpriteColorLow, g_Sp
 // Parameters:
 //   page - Page number to set
 void VDP_SetPage(u8 page);
+void VDP_SetPageNDI(u8 page);
 
 #endif
 
@@ -1451,6 +1457,7 @@ inline VADDR VDP_GetPatternTable_GM2(u8 bank) { return VDP_GetPatternTable() + (
 // Function: VDP_CommandWait
 // Wait for previous VDP command to be finished. [MSX2/2+/TR]
 void VDP_CommandWait() __PRESERVES(b, c, d, e, h, l, iyl, iyh);
+void VDP_CommandWaitNDI() __PRESERVES(b, c, d, e, h, l, iyl, iyh);
 
 #endif
 
@@ -1463,6 +1470,7 @@ void VPD_CommandSetupR32();
 // Function: VPD_CommandSetupR36
 // Send VDP command (form registres 36 to 46). [MSX2/2+/TR]
 void VPD_CommandSetupR36();
+void VPD_CommandSetupNDIR36();
 
 // Function: VPD_CommandWriteLoop
 // Write to VRAM command loop. [MSX2/2+/TR]
@@ -1470,6 +1478,7 @@ void VPD_CommandSetupR36();
 // Parameters:
 //   addr - Address of the source buffer
 void VPD_CommandWriteLoop(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh);
+void VPD_CommandWriteLoopNDI(const u8* addr) __FASTCALL __PRESERVES(d, e, iyl, iyh);
 void VPD_CommandWriteLoopHF(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 void VPD_CommandWriteLoopNM(const u8* addr, u16 nx) __SDCCCALL1 __PRESERVES(iyl, iyh);
 

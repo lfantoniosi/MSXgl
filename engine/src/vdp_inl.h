@@ -31,6 +31,19 @@ inline void VDP_CommandHMMC_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, 
 	VPD_CommandWriteLoop(addr);
 }
 
+inline void VDP_CommandHMMCNDI_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 arg)
+{
+	g_VDP_Command.DX = dx;
+	g_VDP_Command.DY = dy;
+	g_VDP_Command.NX = nx;
+	g_VDP_Command.NY = ny;
+	g_VDP_Command.CLR = *addr;
+	g_VDP_Command.ARG = arg; 
+	g_VDP_Command.CMD = VDP_CMD_HMMC;
+	VPD_CommandSetupNDIR36();
+	VPD_CommandWriteLoopNDI(addr);
+}
+
 inline void VDP_CommandHMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 arg, u8 flag)
 {
 	g_VDP_Command.DX = dx;
@@ -71,6 +84,11 @@ inline void VDP_CommandHMMC2_Arg(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny,
 inline void VDP_CommandHMMC(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny)
 {
 	VDP_CommandHMMC_Arg(addr, dx, dy, nx, ny, 0);
+}
+
+inline void VDP_CommandHMMCNDI(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny)
+{
+	VDP_CommandHMMCNDI_Arg(addr, dx, dy, nx, ny, 0);
 }
 
 inline void VDP_CommandHMMC2(const u8* addr, u16 dx, u16 dy, u16 nx, u16 ny, u8 flag)
